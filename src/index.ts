@@ -1,9 +1,12 @@
 // const express = require('express');
 // import * as express from 'express';
 // const app = express.default();
+const cors = require('cors')
 import express, {Request, Response} from "express";
 const app = express();
 const PORT = process.env.PORT || 3500;
+
+app.use(cors());
 
 const jsonBodyMiddleware = express.json();
 app.use(jsonBodyMiddleware);
