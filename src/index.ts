@@ -1,6 +1,3 @@
-// const express = require('express');
-// import * as express from 'express';
-// const app = express.default();
 const cors = require('cors')
 import express, {Request, Response} from "express";
 const app = express();
