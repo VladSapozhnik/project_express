@@ -3,7 +3,7 @@
 // const app = express.default();
 import express, {Request, Response} from "express";
 const app = express();
-const PORT: number = 3500;
+const PORT = process.env.PORT || 3500;
 
 const jsonBodyMiddleware = express.json();
 app.use(jsonBodyMiddleware);
