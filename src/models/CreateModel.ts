@@ -1,7 +1,5 @@
 export type TrackCreateModel = {
+  /**
+   * track title */
   track: string
-}
-
-export type FriendsCreateModel = {
-  name: string
 }

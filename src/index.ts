@@ -6,9 +6,11 @@ import {
   RequestWithParams,
   RequestWithParamsAndBody,
 } from "./types";
-import { FriendsCreateModel, TrackCreateModel } from "./models/CreateModel";
+import { TrackCreateModel } from "./models/CreateModel";
 import { TrackGetModel } from "./models/QueryModel";
-import { FriendsUpdateModel, TrackUpdateModel } from "./models/UpdateModel";
+import { TrackUpdateModel } from "./models/UpdateModel";
+import { TrackApiModel } from "./models/ApiModel";
+import { URIParamsTrackModel } from "./models/URIParamsModel";
 
 
 export const app = express();
@@ -34,31 +36,11 @@ type trackType = {
   track: string;
 };
 
-type friendType = {
-  id: number;
-  name: string;
-};
-
 type dbType = {
-  friends: friendType[];
   track: trackType[];
 };
 
 const db: dbType = {
-  friends: [
-    {
-      id: 1,
-      name: "Kirill",
-    },
-    {
-      id: 2,
-      name: "Alex",
-    },
-    {
-      id: 3,
-      name: "Lena",
-    },
-  ],
   track: [
     {
       id: 1,
@@ -81,13 +63,9 @@ app.get("/", (req: Request, res: Response) => {
   );
 });
 
-app.get("/mirage", (req: Request, res: Response) => {
-  res.send("MIRAGE VS");
-});
-
 app.get(
   "/mirage/track",
-  (req: RequestWithQuery<TrackGetModel>, res: Response<trackType[]>) => {
+  (req: RequestWithQuery<TrackGetModel>, res: Response<TrackApiModel[]>) => {
     const query = req.query;
 
     let foundTrackQuery = db.track;
@@ -98,32 +76,18 @@ app.get(
       );
     }
 
-    res.json(foundTrackQuery);
-  }
-);
-
-app.post(
-  "/mirage/track",
-  (req: RequestWithBody<TrackCreateModel>, res: Response<trackType>) => {
-    if (!req.body.track && !req.body.track.length) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
-      return;
-    }
-
-    const createdTrack = {
-      id: +new Date(),
-      track: req.body.track,
-    };
-
-    db.track.push(createdTrack);
-
-    res.status(HTTP_STATUSES.CREATED_201).json(createdTrack);
+    res.json(foundTrackQuery.map(dbTrack => {
+      return {
+        id: dbTrack.id,
+        track: dbTrack.track
+      }
+    }));
   }
 );
 
 app.get(
   "/mirage/track/:id",
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
+  (req: RequestWithParams<URIParamsTrackModel>, res: Response<TrackApiModel>) => {
     // console.log(req)
     const foundTrack: trackType | undefined = db.track.find(
       (c) => c.id === +req.params.id
@@ -134,13 +98,38 @@ app.get(
       return;
     }
 
-    res.json(foundTrack);
+    res.json({
+      id: foundTrack.id,
+      track: foundTrack.track
+    });
+  }
+);
+
+app.post(
+  "/mirage/track",
+  (req: RequestWithBody<TrackCreateModel>, res: Response<TrackApiModel>) => {
+    if (!req.body.track && !req.body.track.length) {
+      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
+      return;
+    }
+
+    const createdTrack: trackType = {
+      id: +new Date(),
+      track: req.body.track,
+    };
+
+    db.track.push(createdTrack);
+
+    res.status(HTTP_STATUSES.CREATED_201).json({
+      id: createdTrack.id,
+      track: createdTrack.track
+    });
   }
 );
 
 app.delete(
   "/mirage/track/:id",
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
+  (req: RequestWithParams<URIParamsTrackModel>, res: Response) => {
     const paramId: number = +req.params.id;
 
     if (db.track.some((item) => item.id === paramId)) {
@@ -154,7 +143,7 @@ app.delete(
 app.put(
   "/mirage/track/:id",
   (
-    req: RequestWithParamsAndBody<{ id: string }, TrackUpdateModel>,
+    req: RequestWithParamsAndBody<URIParamsTrackModel, TrackUpdateModel>,
     res: Response
   ) => {
     if (!req.body.track) {
@@ -170,83 +159,6 @@ app.put(
     }
 
     foundTrack.track = req.body.track;
-    res.sendStatus(HTTP_STATUSES.NO_CONTENT_204);
-  }
-);
-
-app.post("/author", (req: Request, res: Response) => {
-  res.send("author this text Mirage");
-});
-
-// friends
-app.get("/friends", (req: Request, res: Response) => {
-  res.send("Hello my friends");
-});
-
-app.get(
-  "/friends/:id",
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
-    const findFriend = db.friends.find((item) => item.id === +req.params.id);
-
-    if (!findFriend) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
-      return;
-    }
-
-    res.json(findFriend);
-  }
-);
-
-app.post(
-  "/friends",
-  (req: RequestWithBody<FriendsCreateModel>, res: Response<friendType>) => {
-    if (!req.body.name) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
-      return;
-    }
-
-    const createdFriend = {
-      id: +new Date(),
-      name: req.body.name,
-    };
-
-    db.friends.push(createdFriend);
-
-    res.status(HTTP_STATUSES.CREATED_201).json(createdFriend);
-  }
-);
-
-app.put(
-  "/friends/:id",
-  (
-    req: RequestWithParamsAndBody<{ id: string }, FriendsUpdateModel>,
-    res: Response
-  ) => {
-    const findFriend: friendType | undefined = db.friends.find(
-      (friend) => friend.id === +req.params.id
-    );
-
-    if (!req.body.name || !findFriend) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
-      return;
-    }
-
-    findFriend.name = req.body.name;
-
-    res.sendStatus(HTTP_STATUSES.NO_CONTENT_204);
-  }
-);
-
-app.delete(
-  "/friends/:id",
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
-    if (!req.params.id) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
-      return;
-    }
-
-    db.friends = db.friends.filter((item) => item.id !== +req.params.id);
-
     res.sendStatus(HTTP_STATUSES.NO_CONTENT_204);
   }
 );
