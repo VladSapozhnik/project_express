@@ -16,7 +16,7 @@
   "scripts": {
     "watch": "tsc -w",
     "dev": "nodemon ./dist/index.js",
-    "build": "tsc",
+    "build": "tsc src/*.ts",
     "start": "node ./dist/index",
     "test": "jest"
   },

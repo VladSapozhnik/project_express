@@ -154,7 +154,7 @@ app.put(
     const foundTrack = db.track.find((item) => item.id === +req.params.id);
 
     if (!foundTrack) {
-      res.sendStatus(HTTP_STATUSES.BAD_REQUEST_400);
+      res.sendStatus(HTTP_STATUSES.NOT_FOUND_404);
       return;
     }
 
