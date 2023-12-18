@@ -1,6 +1,6 @@
 export type TrackGetModel = {
   /**
-   * This title should be include in title for search
+   * This track should be include in track for search
   */
   track: string
 }

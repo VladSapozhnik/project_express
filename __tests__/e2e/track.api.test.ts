@@ -1,5 +1,8 @@
 import request from 'supertest';
-import { HTTP_STATUSES, app } from '../../src';
+import { TrackCreateModel } from '../../src/models/CreateModel';
+import { TrackUpdateModel } from '../../src/models/UpdateModel';
+import {app} from "../../src/app";
+import {HTTP_STATUSES} from "../../src/utils";
 
 describe('/track', () => {
   beforeAll(async () => {
@@ -15,7 +18,9 @@ describe('/track', () => {
   })
 
   it ('should\'nt create track with incorrect input data', async () => {
-    await request(app).post('/mirage/track').send({track: ''}).expect(HTTP_STATUSES.BAD_REQUEST_400)
+    const data: TrackCreateModel = {track: ''}
+
+    await request(app).post('/mirage/track').send(data).expect(HTTP_STATUSES.BAD_REQUEST_400)
 
     await request(app).get('/mirage/track').expect(HTTP_STATUSES.OK_200, [])
   })
@@ -24,7 +29,9 @@ describe('/track', () => {
   it ('should create track with correct input data', async () => {
     const nameTrack = 'new track';
 
-    const createResponse = await request(app).post('/mirage/track').send({track: nameTrack}).expect(HTTP_STATUSES.CREATED_201)
+    const data: TrackCreateModel = {track: nameTrack}
+
+    const createResponse = await request(app).post('/mirage/track').send(data).expect(HTTP_STATUSES.CREATED_201)
 
     createdTrack1 = createResponse.body;
 
@@ -40,7 +47,9 @@ describe('/track', () => {
   it ('should create track 2 with correct input data', async () => {
     const nameTrack = 'new track 2';
 
-    const createResponse = await request(app).post('/mirage/track').send({track: nameTrack}).expect(HTTP_STATUSES.CREATED_201)
+    const data: TrackCreateModel = {track: nameTrack};
+
+    const createResponse = await request(app).post('/mirage/track').send(data).expect(HTTP_STATUSES.CREATED_201)
 
     createdTrack2 = createResponse.body;
 
@@ -53,19 +62,27 @@ describe('/track', () => {
   })
 
   it ('should\'nt update track with incorrect input data', async () => {
-    await request(app).put('/mirage/track/' + createdTrack1.id).send({track: ''}).expect(HTTP_STATUSES.BAD_REQUEST_400)
+    const data: TrackCreateModel = {track: ''}
+
+    await request(app).put('/mirage/track/' + createdTrack1.id).send(data).expect(HTTP_STATUSES.BAD_REQUEST_400)
 
     await request(app).get('/mirage/track/' + createdTrack1.id).expect(HTTP_STATUSES.OK_200, createdTrack1)
   })
 
   it ('should update track that not exist', async () => {
-    await request(app).put('/mirage/track/' + -100).send({track: 'new track'}).expect(HTTP_STATUSES.NOT_FOUND_404)
+    const newNameTrack: string = 'new track'
+
+    const data: TrackUpdateModel = {track: newNameTrack};
+
+    await request(app).put('/mirage/track/' + -100).send(data).expect(HTTP_STATUSES.NOT_FOUND_404)
   })
 
   it ('should update track with correct input data', async () => {
     const newNameTrack = 'new name track';
 
-    await request(app).put('/mirage/track/' + createdTrack1.id).send({track: newNameTrack}).expect(HTTP_STATUSES.NO_CONTENT_204)
+    const data: TrackUpdateModel = {track: newNameTrack};
+
+    await request(app).put('/mirage/track/' + createdTrack1.id).send(data).expect(HTTP_STATUSES.NO_CONTENT_204)
 
     await request(app).get('/mirage/track/' + createdTrack1.id).expect(HTTP_STATUSES.OK_200, {
       ...createdTrack1,
@@ -73,6 +90,10 @@ describe('/track', () => {
     })
 
     await request(app).get('/mirage/track/' + createdTrack2.id).expect(HTTP_STATUSES.OK_200, createdTrack2)
+  })
+
+  it('should\'nt delete track', async () => {
+    await request(app).delete('/mirage/track/' + -100).expect(HTTP_STATUSES.BAD_REQUEST_400)
   })
 
   it ('should delete both track', async () => {
